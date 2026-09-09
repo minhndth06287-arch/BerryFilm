@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let recordTimerInterval = null;
     let currentPreviewType = 'photo'; // 'photo' | 'video'
     let currentCapturedVideoUrl = null;
+    let currentCapturedVideoExt = 'webm'; // đuôi file thực tế: 'webm' (Android) hoặc 'mp4' (iOS)
 
     // Cập nhật Date Stamp hiển thị trên Viewfinder
     function updateDateStampText() {
@@ -213,8 +214,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // 6b. Chuyển đổi chế độ Ảnh <-> Video
+    // Máy quá cũ (vd. iOS < 14.3) không có MediaRecorder / canvas.captureStream — báo ngay từ đây
+    // thay vì để người dùng bấm quay xong mới biết là lỗi.
+    const videoRecordingSupported = !!(window.MediaRecorder && glCanvas && typeof glCanvas.captureStream === 'function');
     videoModeBtn.addEventListener('click', () => {
         if (isRecording) return; // Không cho đổi chế độ giữa lúc đang quay
+        if (!videoRecordingSupported) {
+            alert('Rất tiếc, thiết bị/phiên bản hệ điều hành này không hỗ trợ tính năng quay video.');
+            return;
+        }
         isVideoMode = !isVideoMode;
         videoModeBtn.classList.toggle('active', isVideoMode);
         shutterBtn.classList.toggle('video-armed', isVideoMode);
@@ -263,11 +271,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (micStream) tracks.push(...micStream.getAudioTracks());
         const mixedStream = new MediaStream(tracks);
 
-        // Chọn định dạng video được trình duyệt/WebView hỗ trợ
+        // Chọn định dạng video được trình duyệt/WebView hỗ trợ.
+        // Lưu ý: Safari / WKWebView trên iOS (bản Capacitor iOS) KHÔNG hỗ trợ webm,
+        // chỉ hỗ trợ mp4 (H.264/AAC) — trong khi Chrome/WebView Android hỗ trợ webm.
+        // Đây chính là lý do quay video hoạt động trên Android nhưng im lặng thất bại trên iOS
+        // nếu chỉ khai báo mimeType webm. Ta liệt kê cả hai để mỗi nền tảng tự chọn định dạng nó hỗ trợ.
         const mimeCandidates = [
             'video/webm;codecs=vp9,opus',
             'video/webm;codecs=vp8,opus',
-            'video/webm'
+            'video/webm',
+            'video/mp4;codecs=avc1.42E01E,mp4a.40.2', // iOS Safari / WKWebView (iOS 14.3+)
+            'video/mp4'
         ];
         const supportedMime = mimeCandidates.find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || '';
 
@@ -323,11 +337,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         setRecordingControlsLocked(false);
     }
 
+    // Xác định đuôi file phù hợp với mimeType thực tế được trình duyệt/WebView sử dụng
+    // (webm trên Android/Chrome, mp4 trên iOS/Safari) — tránh hardcode ".webm" khiến
+    // file video quay trên iOS bị đặt sai đuôi và không mở được.
+    function extensionForMime(mimeType) {
+        if (mimeType && mimeType.includes('mp4')) return 'mp4';
+        return 'webm';
+    }
+
     function finalizeVideoRecording() {
         const mimeType = (mediaRecorder && mediaRecorder.mimeType) || 'video/webm';
         const blob = new Blob(recordedChunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
         const durationSec = Math.max(1, Math.round((Date.now() - recordStartTime) / 1000));
+        const ext = extensionForMime(mimeType);
 
         // Lưu vào Gallery
         galleryItems.unshift({
@@ -335,21 +358,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             type: 'video',
             url: url,
             blob: blob,
+            ext: ext,
             preset: webglEngine.currentPresetId,
             duration: durationSec,
             date: new Date().toLocaleTimeString()
         });
 
         // Hiển thị preview video vừa quay
-        openVideoPreview(url);
+        openVideoPreview(url, ext);
 
         // Âm thanh xác nhận đã lưu
         audioEngine.playFilmWind();
     }
 
-    function openVideoPreview(url) {
+    function openVideoPreview(url, ext) {
         currentPreviewType = 'video';
         currentCapturedVideoUrl = url;
+        currentCapturedVideoExt = ext || 'webm';
         previewImage.style.display = 'none';
         previewVideoEl.style.display = 'block';
         previewVideoEl.src = url;
@@ -560,7 +585,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     downloadPhotoBtn.addEventListener('click', () => {
         if (currentPreviewType === 'video' && currentCapturedVideoUrl) {
             const link = document.createElement('a');
-            link.download = `BerryFilm_Video_${Date.now()}.webm`;
+            link.download = `BerryFilm_Video_${Date.now()}.${currentCapturedVideoExt}`;
             link.href = currentCapturedVideoUrl;
             link.click();
         } else if (currentCapturedDataUrl) {
@@ -613,7 +638,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             card.querySelector('img, video').addEventListener('click', () => {
                 if (isVideo) {
-                    openVideoPreview(item.url);
+                    openVideoPreview(item.url, item.ext);
                 } else {
                     openPhotoPreview(item.dataUrl);
                 }
@@ -623,7 +648,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 e.stopPropagation();
                 const link = document.createElement('a');
                 if (isVideo) {
-                    link.download = `BerryFilm_Video_${item.id}.webm`;
+                    link.download = `BerryFilm_Video_${item.id}.${item.ext || 'webm'}`;
                     link.href = item.url;
                 } else {
                     link.download = `BerryFilm_${item.preset}_${item.id}.jpg`;
