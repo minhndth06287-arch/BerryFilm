@@ -1,0 +1,26 @@
+{
+  "name": "berryfilm",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "BerryFilm - Korean Retro Cam & Life4Cuts Studio",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "ios:sync": "npm run build && npx cap sync ios",
+    "ios:open": "npx cap open ios",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/ios": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2",
+    "typescript": "^7.0.2",
+    "vite": "^5.4.0"
+  }
+}

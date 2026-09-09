@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BerryFilm - Korean Retro Cam & Life4Cuts Studio</title>
+    <meta name="description" content="Ứng dụng chụp & chỉnh ảnh phong cách film Hàn Quốc, Y2K Digicam, 3D LUT shader thời gian thực, Dreamy Bloom, Grain và Photobooth Life4Cuts.">
+    <meta name="theme-color" content="#ffd1dc">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+
+    <!-- Main Camera Device Frame -->
+    <main class="camera-device">
+        
+        <!-- Header Bar -->
+        <header class="camera-header">
+            <div class="brand-badge">
+                <span class="logo-icon">🍓</span>
+                <span>BerryFilm</span>
+                <span class="model-tag">DIGI-CAM 2000</span>
+            </div>
+
+            <div class="header-actions">
+                <button id="ratioBtn" class="icon-btn pill-btn" title="Đổi tỉ lệ khung hình">
+                    <span class="btn-label">4:3</span>
+                </button>
+                <button id="dateStampToggle" class="icon-btn active" title="Bật/Tắt Dấu Ngày Giờ Retro">
+                    <span>'98</span>
+                </button>
+                <button id="flipCamBtn" class="icon-btn" title="Chuyển Camera Trước/Sau">
+                    <span>🔄</span>
+                </button>
+                <button id="videoModeBtn" class="icon-btn" title="Chuyển chế độ Ảnh/Video">
+                    <span>🎥</span>
+                </button>
+                <button id="uploadBtn" class="icon-btn" title="Tải ảnh từ máy lên để chỉnh màu">
+                    <span>📁</span>
+                </button>
+                <input type="file" id="fileUploadInput" accept="image/*" style="display: none;">
+            </div>
+        </header>
+
+        <!-- Viewfinder LCD Display Area -->
+        <section class="viewfinder-wrapper" id="viewfinder">
+            <!-- Hidden Raw Video Feed -->
+            <video id="cameraVideo" playsinline autoplay muted></video>
+
+            <!-- WebGL 2.0 Shader Output Canvas -->
+            <canvas id="cameraCanvas"></canvas>
+
+            <!-- Viewfinder Retro HUD Overlay -->
+            <div class="viewfinder-hud">
+                <div class="hud-top">
+                    <span class="hud-badge indicator-live">REC 60FPS</span>
+                    <span class="hud-badge rec-timer-badge" id="recTimerBadge">● 00:00</span>
+                    <span class="hud-badge" id="fpsBadge">60 FPS</span>
+                </div>
+
+                <div class="reticle-center"></div>
+
+                <div class="hud-bottom">
+                    <span class="hud-badge">ISO 200 • F2.8</span>
+                    <div class="date-stamp-overlay" id="dateStampDisplay">'98 04 12</div>
+                </div>
+            </div>
+
+            <!-- Shutter Flash Animation Effect -->
+            <div class="flash-overlay" id="flashOverlay"></div>
+        </section>
+
+        <!-- Preset Selector Carousel -->
+        <section class="preset-section">
+            <div class="preset-carousel" id="presetList">
+                <!-- Dynamically populated by JS: Berry Pink, Y2K Digicam, Seoul Pastel, Classic 35mm, Life4Cuts B&W, Summer Breeze -->
+            </div>
+        </section>
+
+        <!-- Bottom Control Deck -->
+        <footer class="camera-controls">
+            <!-- Gallery Button -->
+            <button id="galleryBtn" class="deck-btn" title="Thư viện ảnh">
+                <span>🖼️</span>
+                <span class="deck-label">GALLERY</span>
+            </button>
+
+            <!-- Tactile Shutter Button -->
+            <div class="shutter-wrapper">
+                <button id="shutterBtn" class="shutter-button" title="Chụp ảnh">
+                    <div class="shutter-inner-circle"></div>
+                </button>
+            </div>
+
+            <!-- Photobooth (Life4Cuts 인생네컷) Button -->
+            <button id="photoboothBtn" class="deck-btn" title="Life4Cuts 4-Shot Studio">
+                <span>🎞️</span>
+                <span class="deck-label">4-CUTS</span>
+            </button>
+
+            <!-- Fine-tune / Darkroom Adjust Button -->
+            <button id="openAdjustBtn" class="deck-btn" title="Tinh chỉnh Shader & Hiệu ứng">
+                <span>⚙️</span>
+                <span class="deck-label">ADJUST</span>
+            </button>
+        </footer>
+
+    </main>
+
+    <!-- Modal 1: Life4Cuts (인생네컷) Photobooth Studio -->
+    <div class="modal-overlay" id="photoboothModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">🎞️ Life4Cuts (인생네컷) Studio</h2>
+                <button class="close-modal-btn" id="closePbModalBtn">✕</button>
+            </div>
+
+            <div class="pb-preview-box">
+                <img id="pbStripPreview" src="" alt="Photobooth Strip Preview" />
+                <div class="pb-countdown-badge" id="pbCountdown">3</div>
+            </div>
+
+            <div class="adjust-grid">
+                <div class="adjust-row">
+                    <label class="adjust-label-wrap">Màu khung Pastel (Theme)</label>
+                    <select id="pbThemeSelect" class="custom-select">
+                        <option value="peach_berry">🌸 Peach Berry (Hồng đào)</option>
+                        <option value="mint_cloud">🌿 Mint Cloud (Xanh bạc hà)</option>
+                        <option value="lavender_mist">💜 Lavender Mist (Tím lilac)</option>
+                        <option value="butter_vanilla">🧈 Butter Vanilla (Vàng bơ)</option>
+                        <option value="matte_charcoal">🖤 Matte Charcoal (Xám khói)</option>
+                        <option value="pure_white">🤍 Pure White (Trắng studio)</option>
+                    </select>
+                </div>
+
+                <div class="adjust-row">
+                    <label class="adjust-label-wrap">Bố cục khung (Layout)</label>
+                    <select id="pbLayoutSelect" class="custom-select">
+                        <option value="strip_4">Dải dọc 4 ảnh (Classic 4-Strip)</option>
+                        <option value="grid_2x2">Lưới vuông 4 ảnh (2x2 Polaroid Grid)</option>
+                    </select>
+                </div>
+
+                <div class="adjust-row">
+                    <label class="adjust-label-wrap">Tiêu đề khung ảnh (Title)</label>
+                    <input type="text" id="pbTitleInput" class="custom-select" value="인생네컷" placeholder="Nhập chữ Hàn hoặc tên bạn...">
+                </div>
+
+                <div class="adjust-row">
+                    <label class="adjust-label-wrap">Sticker Hàn Quốc (Icon)</label>
+                    <select id="pbStickerSelect" class="custom-select">
+                        <option value="🍓">🍓 Dâu tây Berry</option>
+                        <option value="🎀">🎀 Nơ hồng Y2K</option>
+                        <option value="✨">✨ Lấp lánh Sparkles</option>
+                        <option value="💖">💖 Trái tim Heart</option>
+                        <option value="📸">📸 Máy ảnh Camera</option>
+                        <option value="🌸">🌸 Hoa anh đào Cherry</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="startPbBtn" class="action-btn-primary">
+                <span>⚡ Bắt đầu chụp 4 ảnh tự động</span>
+            </button>
+
+            <button id="downloadPbBtn" class="action-btn-primary" style="background: #2b2d42;">
+                <span>💾 Tải ảnh Dải Photobooth (HD)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal 2: Darkroom / Fine-tune Adjustments -->
+    <div class="modal-overlay" id="adjustPanel">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">⚙️ Tinh chỉnh Hiệu ứng & Shader</h2>
+                <button class="close-modal-btn" id="closeAdjustBtn">✕</button>
+            </div>
+
+            <div class="adjust-grid">
+                <div class="adjust-row">
+                    <div class="adjust-label-wrap">
+                        <span>Hạt film động (Dynamic Grain)</span>
+                        <span id="grainVal" class="adjust-val">7%</span>
+                    </div>
+                    <input type="range" id="grainSlider" class="custom-range" min="0" max="0.35" step="0.01" value="0.07">
+                </div>
+
+                <div class="adjust-row">
+                    <div class="adjust-label-wrap">
+                        <span>Loang sáng mộng mơ (Dreamy Bloom)</span>
+                        <span id="bloomVal" class="adjust-val">18%</span>
+                    </div>
+                    <input type="range" id="bloomSlider" class="custom-range" min="0" max="0.5" step="0.01" value="0.18">
+                </div>
+
+                <div class="adjust-row">
+                    <div class="adjust-label-wrap">
+                        <span>Tối 4 góc (Retro Vignette)</span>
+                        <span id="vignetteVal" class="adjust-val">18%</span>
+                    </div>
+                    <input type="range" id="vignetteSlider" class="custom-range" min="0" max="0.6" step="0.01" value="0.18">
+                </div>
+
+                <div class="adjust-row">
+                    <div class="adjust-label-wrap">
+                        <span>Độ phơi sáng (Exposure)</span>
+                        <span id="exposureVal" class="adjust-val">5</span>
+                    </div>
+                    <input type="range" id="exposureSlider" class="custom-range" min="-0.3" max="0.3" step="0.01" value="0.05">
+                </div>
+
+                <div class="adjust-row">
+                    <div class="adjust-label-wrap">
+                        <span>Nhiệt độ màu (Warmth)</span>
+                        <span id="warmthVal" class="adjust-val">2</span>
+                    </div>
+                    <input type="range" id="warmthSlider" class="custom-range" min="-0.15" max="0.15" step="0.01" value="0.02">
+                </div>
+
+                <div class="adjust-row">
+                    <label class="adjust-label-wrap">Kiểu vệt sáng (Light Leak)</label>
+                    <select id="leakTypeSelect" class="custom-select">
+                        <option value="0">Tắt (None)</option>
+                        <option value="1">Góc trên phải (Warm Peach Corner)</option>
+                        <option value="2">Vệt sọc bên trái (Magenta Streak)</option>
+                        <option value="3">Vùng sáng chân trời (Golden Horizon)</option>
+                    </select>
+                </div>
+
+                <div class="adjust-row">
+                    <div class="adjust-label-wrap">
+                        <span>Cường độ vệt sáng (Leak Intensity)</span>
+                        <span id="leakVal" class="adjust-val">0%</span>
+                    </div>
+                    <input type="range" id="leakSlider" class="custom-range" min="0" max="0.8" step="0.02" value="0">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Single Shot Snapshot Preview -->
+    <div class="modal-overlay" id="previewModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">✨ Ảnh chụp BerryFilm</h2>
+                <button class="close-modal-btn" id="closePreviewBtn">✕</button>
+            </div>
+
+            <img id="previewImage" src="" alt="BerryFilm Snapshot Preview" />
+            <video id="previewVideoEl" controls playsinline style="display:none;"></video>
+
+            <button id="downloadPhotoBtn" class="action-btn-primary">
+                <span id="downloadPhotoBtnLabel">💾 Lưu ảnh độ phân giải cao</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal 4: Gallery Drawer -->
+    <div class="modal-overlay" id="galleryModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">🖼️ Bộ sưu tập của bạn</h2>
+                <button class="close-modal-btn" id="closeGalleryBtn">✕</button>
+            </div>
+
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Dynamically populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Engine Scripts -->
+    <script src="js/audio-fx.js"></script>
+    <script src="js/lut-generator.js"></script>
+    <script src="js/webgl-engine.js"></script>
+    <script src="js/camera-controller.js"></script>
+    <script src="js/photobooth.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

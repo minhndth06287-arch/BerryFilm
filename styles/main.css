@@ -1,0 +1,835 @@
+/* ============================================================
+   BerryFilm - Korean Retro Camera & Life4Cuts Studio Stylesheet
+   Aesthetic: Y2K Frosted Pastel, Digicam Glassmorphism, Retro HUD
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+:root {
+    --bg-main: #f5edf0;
+    --bg-dark: #121316;
+    --camera-body: #fbf9fa;
+    --camera-border: #ebdce3;
+    --primary-pink: #ff85a1;
+    --accent-peach: #ffafcc;
+    --accent-mint: #bbf7d0;
+    --accent-lilac: #e9d5ff;
+    --text-primary: #2d2a32;
+    --text-secondary: #7e7a85;
+    --date-orange: #ff7828;
+    --shutter-outer: #ffd6e0;
+    --shutter-inner: #ff758f;
+    --radius-cam: 32px;
+    --radius-lcd: 20px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+body {
+    font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+    background: radial-gradient(circle at top right, #ffe5ec, #f0e6ef, #dbe4ee);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    overflow-x: hidden;
+}
+
+/* App Container (Retro Camera Device Frame) */
+.camera-device {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1.5px solid rgba(255, 255, 255, 0.95);
+    border-radius: var(--radius-cam);
+    box-shadow: 0 25px 50px -12px rgba(186, 150, 166, 0.35),
+                0 4px 12px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    padding: 18px 18px 24px 18px;
+    gap: 14px;
+    overflow: hidden;
+}
+
+/* Top Header Bar */
+.camera-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 6px;
+}
+
+.brand-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: -0.5px;
+    color: #4a3e48;
+}
+
+.brand-badge .logo-icon {
+    font-size: 1.3rem;
+    filter: drop-shadow(0 2px 4px rgba(255, 117, 143, 0.3));
+}
+
+.brand-badge .model-tag {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--primary-pink);
+    background: rgba(255, 133, 161, 0.12);
+    padding: 2px 7px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.icon-btn {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(230, 220, 226, 0.8);
+    color: var(--text-primary);
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.icon-btn:hover {
+    transform: translateY(-2px);
+    background: #ffffff;
+    box-shadow: 0 6px 14px rgba(255, 133, 161, 0.2);
+}
+
+.icon-btn:active {
+    transform: scale(0.92);
+}
+
+.icon-btn.pill-btn {
+    width: auto;
+    padding: 0 12px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    gap: 4px;
+}
+
+.icon-btn.active {
+    background: var(--primary-pink);
+    color: #ffffff;
+    border-color: var(--primary-pink);
+    box-shadow: 0 4px 12px rgba(255, 117, 143, 0.35);
+}
+
+/* Viewfinder Screen (LCD Display) */
+.viewfinder-wrapper {
+    position: relative;
+    width: 100%;
+    background: #000000;
+    border-radius: var(--radius-lcd);
+    overflow: hidden;
+    box-shadow: inset 0 0 0 2px #26232b,
+                0 10px 25px -5px rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#cameraCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    aspect-ratio: 4 / 3;
+    transition: aspect-ratio 0.3s ease;
+}
+
+#cameraVideo {
+    display: none;
+}
+
+/* Viewfinder Retro HUD Overlay */
+.viewfinder-hud {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 14px 16px;
+    z-index: 10;
+}
+
+.hud-top, .hud-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hud-badge {
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: monospace;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    letter-spacing: 0.5px;
+}
+
+.hud-badge.indicator-live {
+    color: #4ade80;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.hud-badge.indicator-live::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulseGlow 1.5s infinite;
+}
+
+@keyframes pulseGlow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* Retro Grid Lines & Center Reticle */
+.reticle-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+.reticle-center::before, .reticle-center::after {
+    content: '';
+    position: absolute;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.reticle-center::before {
+    top: 50%;
+    left: -8px;
+    right: -8px;
+    height: 1px;
+    transform: translateY(-50%);
+}
+
+.reticle-center::after {
+    left: 50%;
+    top: -8px;
+    bottom: -8px;
+    width: 1px;
+    transform: translateX(-50%);
+}
+
+/* Retro Orange LED Date Stamp */
+.date-stamp-overlay {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--date-orange);
+    text-shadow: 0 0 6px rgba(255, 120, 40, 0.85);
+    letter-spacing: 1.5px;
+    transition: opacity 0.2s ease;
+}
+
+/* Shutter Flash Animation Overlay */
+.flash-overlay {
+    position: absolute;
+    inset: 0;
+    background: #ffffff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 50;
+}
+
+.flash-overlay.active {
+    animation: shutterFlash 0.35s ease-out;
+}
+
+@keyframes shutterFlash {
+    0% { opacity: 0.95; }
+    100% { opacity: 0; }
+}
+
+/* Preset Selector Carousel */
+.preset-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.preset-carousel {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 2px 6px 2px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.preset-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.preset-pill {
+    flex: 0 0 auto;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(220, 210, 218, 0.8);
+    border-radius: 16px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.preset-pill:hover {
+    background: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.preset-pill.active {
+    background: #ffffff;
+    border-color: var(--primary-pink);
+    box-shadow: 0 6px 16px rgba(255, 133, 161, 0.3);
+    transform: translateY(-2px) scale(1.03);
+}
+
+.preset-color-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.preset-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.preset-name {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.1;
+}
+
+.preset-kr {
+    font-size: 0.62rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Bottom Control Deck */
+.camera-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 12px 0 12px;
+}
+
+.deck-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(230, 220, 226, 0.9);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+.deck-btn .deck-label {
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.deck-btn:hover {
+    transform: translateY(-3px);
+    background: #ffffff;
+    box-shadow: 0 8px 18px rgba(255, 133, 161, 0.2);
+}
+
+.deck-btn:active {
+    transform: scale(0.92);
+}
+
+/* Tactile Korean Shutter Button */
+.shutter-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.shutter-button {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffffff, var(--shutter-outer) 70%, #f4b6c2);
+    border: 3.5px solid #ffffff;
+    box-shadow: 0 8px 22px rgba(255, 117, 143, 0.4),
+                0 2px 6px rgba(0, 0, 0, 0.08),
+                inset 0 -3px 6px rgba(214, 90, 115, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.shutter-inner-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #ff85a1, var(--shutter-inner));
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.6),
+                0 3px 8px rgba(255, 80, 110, 0.35);
+    transition: transform 0.1s ease;
+}
+
+.shutter-button:hover {
+    transform: scale(1.04);
+}
+
+.shutter-button:active {
+    transform: scale(0.94);
+    box-shadow: 0 2px 8px rgba(255, 117, 143, 0.3);
+}
+
+.shutter-button:active .shutter-inner-circle {
+    transform: scale(0.88);
+}
+
+/* Trạng thái sẵn sàng quay Video (chưa bấm) */
+.shutter-button.video-armed {
+    background: radial-gradient(circle at 35% 30%, #ffffff, #ff5c5c 70%, #d63a3a);
+    box-shadow: 0 8px 22px rgba(255, 80, 80, 0.45),
+                0 2px 6px rgba(0, 0, 0, 0.08),
+                inset 0 -3px 6px rgba(180, 40, 40, 0.3);
+}
+
+.shutter-button.video-armed .shutter-inner-circle {
+    background: linear-gradient(145deg, #ff6b6b, #e63946);
+}
+
+/* Trạng thái đang quay Video (đã bấm, đang ghi hình) */
+.shutter-button.recording {
+    animation: recordingPulse 1.4s infinite;
+}
+
+.shutter-button.recording .shutter-inner-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: #e63946;
+}
+
+@keyframes recordingPulse {
+    0%, 100% { box-shadow: 0 8px 22px rgba(255, 80, 80, 0.5), 0 0 0 0 rgba(230, 57, 70, 0.5); }
+    50% { box-shadow: 0 8px 22px rgba(255, 80, 80, 0.5), 0 0 0 12px rgba(230, 57, 70, 0); }
+}
+
+/* Badge đếm thời gian quay video trên HUD */
+.rec-timer-badge {
+    display: none;
+    color: #ff6b6b;
+    align-items: center;
+    gap: 4px;
+}
+
+.rec-timer-badge.active {
+    display: flex;
+}
+
+/* Làm mờ các nút khác khi đang quay video để tránh bấm nhầm */
+.controls-locked {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+/* Modals & Sliding Panels */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(18, 19, 22, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-card {
+    background: #ffffff;
+    border-radius: 28px;
+    width: 100%;
+    max-width: 440px;
+    max-height: 90vh;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    overflow-y: auto;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-overlay.open .modal-card {
+    transform: translateY(0) scale(1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.close-modal-btn {
+    background: #f1f3f5;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+/* Darkroom / Adjust Sliders Panel */
+.adjust-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.adjust-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.adjust-label-wrap {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.adjust-val {
+    color: var(--primary-pink);
+    font-family: monospace;
+}
+
+.custom-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #e9ecef;
+    outline: none;
+}
+
+.custom-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary-pink);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(255, 133, 161, 0.5);
+    transition: transform 0.1s;
+}
+
+.custom-range::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.custom-select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid #dee2e6;
+    background: #f8f9fa;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    outline: none;
+}
+
+/* Life4Cuts Studio UI */
+.pb-preview-box {
+    width: 100%;
+    max-height: 320px;
+    background: #f8f9fa;
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    padding: 10px;
+    border: 1px dashed #ced4da;
+    position: relative;
+}
+
+#pbStripPreview {
+    max-height: 300px;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.pb-countdown-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 117, 143, 0.92);
+    color: #ffffff;
+    font-size: 3rem;
+    font-weight: 800;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 25px rgba(255, 80, 110, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.pb-countdown-badge.active {
+    opacity: 1;
+    animation: bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes bounceIn {
+    0% { transform: translate(-50%, -50%) scale(0.4); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+.action-btn-primary {
+    background: linear-gradient(135deg, #ff85a1, #ff506e);
+    color: #ffffff;
+    border: none;
+    border-radius: 16px;
+    padding: 14px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255, 117, 143, 0.35);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.action-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 80, 110, 0.45);
+}
+
+.action-btn-primary:active {
+    transform: scale(0.96);
+}
+
+.action-btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Gallery & Preview Styles */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.gallery-card {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f1f3f5;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.gallery-card img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    display: block;
+    cursor: pointer;
+}
+
+.gallery-card-info {
+    position: absolute;
+    bottom: 0;
+    inset-inline: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    color: #ffffff;
+    padding: 6px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.68rem;
+    font-weight: 700;
+}
+
+.download-mini-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.empty-gallery {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+
+.empty-gallery p {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+}
+
+.empty-gallery span {
+    font-size: 0.82rem;
+}
+
+#previewImage,
+#previewVideoEl {
+    width: 100%;
+    border-radius: 16px;
+    max-height: 380px;
+    object-fit: contain;
+    background: #111;
+}
+
+/* Nhãn thời lượng + biểu tượng Play trên thẻ video trong Gallery */
+.gallery-card.is-video {
+    position: relative;
+}
+
+.gallery-card video {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    display: block;
+    cursor: pointer;
+    background: #000;
+}
+
+.gallery-card.is-video::before {
+    content: '▶';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: 1.6rem;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    body {
+        padding: 0;
+        background: #fdfafb;
+    }
+    .camera-device {
+        max-width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        justify-content: space-between;
+        padding: 12px 14px 20px 14px;
+    }
+}
